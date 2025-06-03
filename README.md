@@ -6,7 +6,72 @@ Draw Building Layout
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Draw Layout</title>
-    <style>
+    <style><label for="shape">Select Shape:</label>
+<select id="shape">
+    <option value="line">Line</option>
+    <option value="rectangle">Rectangle</option>
+    <option value="circle">Circle</option>
+</select>const shapeSelect = document.getElementById('shape');
+let currentShape = shapeSelect.value;  // Default shape is "line"
+
+shapeSelect.addEventListener('change', (e) => {
+    currentShape = e.target.value;  // Update the shape when the user changes selection
+});
+
+let startX, startY;
+
+canvas.addEventListener('mousedown', (e) => {
+    startX = e.offsetX;
+    startY = e.offsetY;
+    drawing = true;
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    if (drawing) {
+        const endX = e.offsetX;
+        const endY = e.offsetY;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear the canvas while drawing
+        
+        // Redraw existing strokes (important for shapes and free drawing)
+        strokes.forEach(stroke => {
+            ctx.beginPath();
+            ctx.moveTo(stroke[0].x, stroke[0].y);
+            stroke.forEach(point => {
+                ctx.lineTo(point.x, point.y);
+                ctx.stroke();
+            });
+        });
+
+        if (currentShape === 'line') {
+            // Draw line
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+        } else if (currentShape === 'rectangle') {
+            // Draw rectangle
+            const width = endX - startX;
+            const height = endY - startY;
+            ctx.strokeRect(startX, startY, width, height);
+        } else if (currentShape === 'circle') {
+            // Draw circle
+            const radius = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+            ctx.beginPath();
+            ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+    }
+});
+
+canvas.addEventListener('mouseup', () => {
+    drawing = false;
+
+    // Store the shape in the strokes array (save its data)
+    const shapeData = { type: currentShape, startX, startY, endX, endY };
+    strokes.push(shapeData);
+});
+
+
         canvas {
             border: 1px solid black;
             cursor: crosshair;
